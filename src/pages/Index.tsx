@@ -6,13 +6,13 @@ const Index = () => {
   return (
     <main>
       <SEO
-        title="AI Ad Generator – Create Ads Instantly"
+        title="Trilent AI"
         description="Generate ad copy and images from a simple prompt. Fast AI ad creator for marketers and founders."
         canonical={typeof window !== "undefined" ? window.location.origin : undefined}
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebApplication",
-          name: "AI Ad Generator",
+          name: "Trilent AI",
           applicationCategory: "MarketingApplication",
         }}
       />
