@@ -13,30 +13,32 @@ export type FormValues = {
   name?: string;
   slogan?: string;
   website?: string;
-  socials?: string;
+  instagram?: string;
+  facebook?: string;
+  twitter?: string;
   format: "image" | "video";
-  runwareKey?: string;
 };
 
 export const AdForm: React.FC = () => {
   const navigate = useNavigate();
-  const { register, handleSubmit, watch, formState, setValue } = useForm<FormValues>({
+  const { register, handleSubmit } = useForm<FormValues>({
     defaultValues: { format: "image" },
   });
 
-  React.useEffect(() => {
-    const savedKey = localStorage.getItem("runwareKey");
-    if (savedKey) setValue("runwareKey", savedKey);
-  }, [setValue]);
-
   const onSubmit = (data: FormValues) => {
-    if (data.runwareKey) localStorage.setItem("runwareKey", data.runwareKey);
+    const socials = [
+      data.instagram && `Instagram: ${data.instagram}`,
+      data.facebook && `Facebook: ${data.facebook}`,
+      data.twitter && `Twitter: ${data.twitter}`,
+    ]
+      .filter(Boolean)
+      .join(" | ");
 
     const brand: BrandInfo = {
       name: data.name,
       slogan: data.slogan,
       website: data.website,
-      socials: data.socials,
+      socials,
     };
 
     const copy = generateAdCopy(data.prompt, brand);
@@ -47,7 +49,6 @@ export const AdForm: React.FC = () => {
         brand,
         prompt: data.prompt,
         format: data.format,
-        runwareKey: data.runwareKey || null,
       },
     });
   };
@@ -66,20 +67,33 @@ export const AdForm: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Brand name</Label>
+              <Label htmlFor="name">Brand name (optional)</Label>
               <Input id="name" placeholder="Acme Co." {...register("name")} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="slogan">Slogan</Label>
+              <Label htmlFor="slogan">Slogan (optional)</Label>
               <Input id="slogan" placeholder="Do more with less" {...register("slogan")} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="website">Website</Label>
+              <Label htmlFor="website">Website URL (optional)</Label>
               <Input id="website" type="url" placeholder="https://example.com" {...register("website")} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="socials">Social links</Label>
-              <Input id="socials" placeholder="@brand, /brand" {...register("socials")} />
+              <Label>Social links (optional)</Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="instagram" className="text-xs text-muted-foreground">Instagram</Label>
+                  <Input id="instagram" placeholder="@yourbrand" {...register("instagram")} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="facebook" className="text-xs text-muted-foreground">Facebook</Label>
+                  <Input id="facebook" placeholder="/yourbrand" {...register("facebook")} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="twitter" className="text-xs text-muted-foreground">Twitter/X</Label>
+                  <Input id="twitter" placeholder="@yourbrand" {...register("twitter")} />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -90,17 +104,11 @@ export const AdForm: React.FC = () => {
                 <input type="radio" value="image" defaultChecked {...register("format")} />
                 <span>Image</span>
               </label>
-              <label className="inline-flex items-center gap-2 opacity-60">
-                <input type="radio" value="video" disabled {...register("format")} />
-                <span>Video (coming soon)</span>
+              <label className="inline-flex items-center gap-2">
+                <input type="radio" value="video" {...register("format")} />
+                <span>Video</span>
               </label>
             </div>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="runwareKey">Runware API key (optional, for AI images)</Label>
-            <Input id="runwareKey" placeholder="Paste your key to generate real AI images" {...register("runwareKey")} />
-            <p className="text-sm text-muted-foreground">Without a key, you'll get a high-quality placeholder banner. Add a key to generate bespoke AI visuals.</p>
           </div>
 
           <div className="flex justify-end">

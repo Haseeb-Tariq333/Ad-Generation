@@ -23,7 +23,7 @@ const Index = () => {
         <div className="container py-16 md:py-24">
           <header className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
-              Create compelling ads with AI
+              Generate ads with trilent
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
               Turn a short prompt into polished ad copy and visuals. Perfect for campaigns, landing pages, and socials.

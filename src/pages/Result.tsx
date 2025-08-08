@@ -11,7 +11,6 @@ interface ResultState {
   brand: BrandInfo;
   prompt: string;
   format: "image" | "video";
-  runwareKey?: string | null;
 }
 
 const Result: React.FC = () => {
@@ -34,35 +33,17 @@ const Result: React.FC = () => {
     const run = async () => {
       setLoadingImg(true);
       try {
-        const key = state.runwareKey || localStorage.getItem("runwareKey") || "";
-        if (key) {
-          // Lazy-load Runware service only when key present
-          const { RunwareService } = await import("@/lib/runware");
-          const service = new RunwareService(key);
-          const result = await service.generateImage({
-            positivePrompt: `${state.prompt} – branded as ${state.brand?.name || "Your Brand"}`,
-            width: 1024,
-            height: 1024,
-            numberResults: 1,
-          });
-          if (!cancelled) setImageURL(result.imageURL);
-        } else {
-          const placeholder = generatePlaceholderBanner(state.copy!.headline, state.copy!.cta);
-          if (!cancelled) setImageURL(placeholder);
-        }
-      } catch (e) {
-        console.error(e);
         const placeholder = generatePlaceholderBanner(state.copy!.headline, state.copy!.cta);
         if (!cancelled) setImageURL(placeholder);
       } finally {
         if (!cancelled) setLoadingImg(false);
       }
     };
-    run();
+    if (state.format === "image") run();
     return () => {
       cancelled = true;
     };
-  }, [state.copy]);
+  }, [state.copy, state.format]);
 
   if (!state.copy) return null;
 
