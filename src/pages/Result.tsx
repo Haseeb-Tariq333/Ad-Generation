@@ -1,112 +1,71 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { SEO } from "@/components/SEO";
-import { downloadImage, generatePlaceholderBanner } from "@/lib/image";
-import type { AdCopy, BrandInfo } from "@/lib/adgen";
-
-interface ResultState {
-  copy: AdCopy;
-  brand: BrandInfo;
-  prompt: string;
-  format: "image" | "video";
-}
 
 const Result: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const state = (location.state || {}) as Partial<ResultState>;
+  const state = (location.state || {}) as any;
+  const brand = state.brand || null;
+  const prompt = state.prompt || "";
 
-  React.useEffect(() => {
-    if (!state.copy || !state.prompt) {
-      navigate("/", { replace: true });
-    }
-  }, []);
+  if (!brand) {
+    return (
+      <div className="min-h-screen p-6">
+        <button className="text-blue-600 mb-4" onClick={() => navigate(-1)}>&larr; Back</button>
+        <div>No brand data found. Go back and submit a website.</div>
+      </div>
+    );
+  }
 
-  const [imageURL, setImageURL] = React.useState<string | null>(null);
-  const [loadingImg, setLoadingImg] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!state.copy) return;
-    let cancelled = false;
-    const run = async () => {
-      setLoadingImg(true);
-      try {
-        const placeholder = generatePlaceholderBanner(state.copy!.headline, state.copy!.cta);
-        if (!cancelled) setImageURL(placeholder);
-      } finally {
-        if (!cancelled) setLoadingImg(false);
-      }
-    };
-    if (state.format === "image") run();
-    return () => {
-      cancelled = true;
-    };
-  }, [state.copy, state.format]);
-
-  if (!state.copy) return null;
-
-  const { headline, description, cta } = state.copy;
+  const logoUrl = brand.logo_url || brand.uploaded_logo_path || null;
+  // if uploaded_logo_path is a server path, prefer returned logo_url (we return full URL when possible)
 
   return (
-    <main className="min-h-screen py-10">
-      <SEO
-        title={`Ad Result – ${headline}`}
-        description={description}
-        canonical={typeof window !== "undefined" ? window.location.href : undefined}
-        structuredData={{
-          "@context": "https://schema.org",
-          "@type": "CreativeWork",
-          name: headline,
-          description,
-        }}
-      />
-      <div className="container grid gap-8">
-        <div>
-          <Button variant="ghost" onClick={() => navigate(-1)}>&larr; Back</Button>
-        </div>
-        <Card className="border border-border/60">
-          <CardHeader>
-            <CardTitle>AI Ad Copy</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div>
-              <h2 className="text-2xl font-bold">{headline}</h2>
-              <p className="text-muted-foreground mt-2">{description}</p>
-            </div>
-            <div>
-              <span className="inline-flex items-center rounded-md bg-accent px-3 py-1 text-sm text-accent-foreground">CTA: {cta}</span>
-            </div>
-          </CardContent>
-        </Card>
+    <main className="min-h-screen p-6 bg-gray-50">
+      <button className="text-blue-600 mb-4" onClick={() => navigate(-1)}>&larr; Back</button>
 
-        <Card className="border border-border/60">
-          <CardHeader>
-            <CardTitle>Visual Preview</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="w-full flex items-center justify-center">
-              {loadingImg ? (
-                <div className="h-72 w-full max-w-3xl bg-muted animate-pulse rounded-lg" />
-              ) : imageURL ? (
-                <img
-                  src={imageURL}
-                  alt={`Ad image for ${state.brand?.name || "brand"}`}
-                  className="w-full max-w-3xl rounded-lg border border-border/60"
-                  loading="lazy"
-                />
-              ) : null}
-            </div>
-            {imageURL && (
-              <div className="flex gap-3">
-                <Button variant="default" onClick={() => downloadImage(imageURL, "ad-image.png")}>Download Image</Button>
-                <Button variant="outline" onClick={() => navigator.clipboard.writeText(`${headline}\n\n${description}\n\n${cta}`)}>Copy Text</Button>
+      <section className="max-w-4xl mx-auto space-y-6">
+        <div className="bg-white p-6 rounded shadow">
+          <h2 className="text-2xl font-semibold mb-2">AI Ad Copy</h2>
+          <h3 className="text-xl font-bold">{state.copy?.headline || "Your AI-Generated Headline"}</h3>
+          <p className="text-gray-600 mt-2">{state.copy?.description || "An example description generated using AI."}</p>
+          <div className="mt-4 inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded">{state.copy?.cta || "Learn More"}</div>
+        </div>
+
+        <div className="bg-white p-6 rounded shadow">
+          <h2 className="text-xl font-semibold mb-4">Brand Kit</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <div className="md:col-span-2">
+              <p className="text-sm text-gray-500">Source</p>
+              <p className="text-lg font-bold">{brand.brand_name || "Not found"}</p>
+              <p className="text-gray-600 mt-1">{brand.slogan || "No slogan found"}</p>
+
+              <div className="mt-4">
+                <h4 className="text-sm font-medium">Socials</h4>
+                <ul className="mt-2 space-y-1">
+                  {brand.socials && Object.keys(brand.socials).length > 0 ? (
+                    Object.entries(brand.socials).map(([k, v]) => (
+                      v ? <li key={k}><a className="text-indigo-600" href={v} target="_blank" rel="noreferrer">{k}: {v}</a></li> : null
+                    ))
+                  ) : (
+                    <li className="text-gray-500">No social links found</li>
+                  )}
+                </ul>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+
+            <div className="flex items-center justify-center">
+              {logoUrl ? (
+                <img src={logoUrl} alt="Brand logo" className="max-h-24 object-contain" />
+              ) : (
+                <div className="h-24 w-40 bg-gray-100 flex items-center justify-center rounded">No logo</div>
+              )}
+            </div>
+          </div>
+
+        </div>
+      </section>
     </main>
   );
 };

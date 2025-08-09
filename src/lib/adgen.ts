@@ -1,9 +1,12 @@
-export interface BrandInfo {
+export type BrandInfo = {
   name?: string;
   slogan?: string;
   website?: string;
-  socials?: string;
-}
+  socials?: string; // string summary like "Instagram: ... | Facebook: ..."
+  logo?: string;
+};
+
+
 
 export interface AdCopy {
   headline: string;
